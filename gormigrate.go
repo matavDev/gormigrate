@@ -138,6 +138,7 @@ func (g *Gormigrate) InitSchema(initSchema InitSchemaFunc) {
 
 // Migrate executes all migrations that did not run yet.
 func (g *Gormigrate) Migrate() error {
+	fmt.Println("migrate: running Migrate()")
 	if !g.hasMigrations() {
 		return ErrNoMigrationDefined
 	}
@@ -145,6 +146,7 @@ func (g *Gormigrate) Migrate() error {
 	if len(g.migrations) > 0 {
 		targetMigrationID = g.migrations[len(g.migrations)-1].ID
 	}
+	fmt.Println("migrate: running g.migrate() with targetMigrationID", targetMigrationID)
 	return g.migrate(targetMigrationID)
 }
 
@@ -157,6 +159,7 @@ func (g *Gormigrate) MigrateTo(migrationID string) error {
 }
 
 func (g *Gormigrate) migrate(migrationID string) error {
+	fmt.Println("calling migrate()")
 	if !g.hasMigrations() {
 		return ErrNoMigrationDefined
 	}
@@ -168,7 +171,7 @@ func (g *Gormigrate) migrate(migrationID string) error {
 	if err := g.checkDuplicatedID(); err != nil {
 		return err
 	}
-
+	fmt.Println("migrate: calling g.begin()")
 	g.begin()
 	defer g.rollback()
 
@@ -198,15 +201,17 @@ func (g *Gormigrate) migrate(migrationID string) error {
 			return g.commit()
 		}
 	}
-
+	fmt.Println("migration: looping through migrations")
 	for _, migration := range g.migrations {
 		if err := g.runMigration(migration); err != nil {
 			return err
 		}
 		if migrationID != "" && migration.ID == migrationID {
+			fmt.Printf("migration: breaking: migration.ID: %s, migrationID: %s\n", migration.ID, migrationID)
 			break
 		}
 	}
+	fmt.Println("migration: commit()")
 	return g.commit()
 }
 
