@@ -152,6 +152,7 @@ func (g *Gormigrate) MigrateTo(migrationID string) error {
 }
 
 func (g *Gormigrate) migrate(migrationID string) error {
+	fmt.Println("migrate: calling migrate()")
 	if !g.hasMigrations() {
 		return ErrNoMigrationDefined
 	}
@@ -163,7 +164,7 @@ func (g *Gormigrate) migrate(migrationID string) error {
 	if err := g.checkDuplicatedID(); err != nil {
 		return err
 	}
-
+	fmt.Println("migrate: beginning migration")
 	g.begin()
 	defer g.rollback()
 
@@ -195,13 +196,16 @@ func (g *Gormigrate) migrate(migrationID string) error {
 	}
 
 	for _, migration := range g.migrations {
+		fmt.Printf("migrate: looping through migration: %v\n", migration.ID)
 		if err := g.runMigration(migration); err != nil {
 			return err
 		}
 		if migrationID != "" && migration.ID == migrationID {
+			fmt.Printf("migrate: migration ID is empty string and migration.ID=%s is migrationID=%s \n", migration.ID, migrationID)
 			break
 		}
 	}
+	fmt.Println("migrate: commiting migration")
 	return g.commit()
 }
 
